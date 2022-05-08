@@ -1,6 +1,6 @@
-# Hindley-milner type inference
+# Hindley-Milner type inference
 
-Hindley-milner type inference algorithm based on [implementation](https://dysphoria.net/2009/06/28/hindley-milner-type-inference-in-scala/)
+Hindley-Milner type inference algorithm based on [implementation](https://dysphoria.net/2009/06/28/hindley-milner-type-inference-in-scala/)
 by Andrew Forrest, originally written in Scala.
 
 This is almost one-to-one rewriting to F#.
