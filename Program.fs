@@ -94,9 +94,12 @@ module TypeSystem =
                 if occursIn v (nongen |> Seq.cast<CType>) then
                     tp
                 else
-                    let res = newVariable()
-                    mapping[v] <- res
-                    res
+                    match mapping.TryGetValue v with
+                    | (true, r) -> r
+                    | (false, _) ->
+                        let res = newVariable()
+                        mapping[v] <- res
+                        res
             | :? COper as o ->
                 COper(o.Name, o.Args |> Array.map loop)
             | _ -> failwith "not supported type"
@@ -162,10 +165,14 @@ let main () =
     let var2 = newVariable()
     let pairType = COper ("*", [|var1; var2|])
 
+    let obj = COper("obj", [||])
+
     let var3 = newVariable()
     let myEnv = Map.ofList<_,CType> [
         "pair", newFunction var1 (newFunction var2 pairType)
         "true", Bool
+        "box", newFunction (newVariable()) obj
+        "|>", newFunction var1 (newFunction (newFunction var1 var2) var2) // 'a -> ('a -> 'b) -> 'b
         "cond", newFunction Bool (newFunction var3 (newFunction var3 var3))
         "zero", newFunction Integer Bool
         "pred", newFunction Integer Integer
@@ -239,6 +246,15 @@ let main () =
         // Function composition
         // fn f (fn g (fn arg (f g arg)))
         Lambda("f", Lambda("g", Lambda("arg", Apply(Ident("g"), Apply(Ident("f"), Ident("arg"))))))
+
+        // (int -> 'a) -> 'a
+        Apply(Ident "|>", Ident "1")
+
+        // Piping into 'box' will produce 'obj'
+        Apply(
+            Apply(Ident "|>", Ident "1"),
+            Ident "box"
+        )
     |]
 
     let tryExp env ast =
